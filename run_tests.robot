@@ -20,7 +20,8 @@ Execute BrowserStack Pytest Tests
     ${BROWSERSTACK_ACCESS_KEY}=    Get Environment Variable    BROWSERSTACK_ACCESS_KEY    default=NOT_SET
     
     Log    BrowserStack Username: ${BROWSERSTACK_USERNAME}    console=True
-    Log    BrowserStack Key configured: ${'Yes' if $BROWSERSTACK_ACCESS_KEY != 'NOT_SET' else 'No'}    console=True
+    ${key_status}=    Set Variable If    '${BROWSERSTACK_ACCESS_KEY}' != 'NOT_SET'    Yes    No
+    Log    BrowserStack Key configured: ${key_status}    console=True
     
     # Ensure script has execute permissions
     Run    chmod +x ${SCRIPT_PATH}
@@ -32,8 +33,8 @@ Execute BrowserStack Pytest Tests
     ...    stdout=${CURDIR}/robot_stdout.log
     ...    stderr=${CURDIR}/robot_stderr.log
     ...    shell=False
-    ...    env:BROWSERSTACK_USERNAME=${bs_username}
-    ...    env:BROWSERSTACK_ACCESS_KEY=${bs_key}
+    ...    env:BROWSERSTACK_USERNAME=${BROWSERSTACK_USERNAME}
+    ...    env:BROWSERSTACK_ACCESS_KEY=${BROWSERSTACK_ACCESS_KEY}
     
     # Log output for debugging
     Log    STDOUT:\n${result.stdout}    console=True
