@@ -11,5 +11,5 @@ cd android
 echo "running pytest for bstack-sample-test.py"
 rm -rf log logs && browserstack-sdk pytest ./bstack_sample.py -s
 echo "pytest testing completed"
-deactivate -s
+deactivate
 rm -rf env
