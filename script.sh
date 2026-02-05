@@ -8,17 +8,33 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Script directory: $SCRIPT_DIR"
 cd "$SCRIPT_DIR"
 
-echo "creating virtual environment and installing dependencies"
+echo "Python version:"
 python -V
-python -m venv env
 
-if [ ! -f "env/bin/activate" ]; then
-    echo "ERROR: Failed to create virtual environment"
-    exit 1
+# Detect if running in Copado environment (or any CI/CD that already provides isolation)
+if [ -n "$CI" ] || [ -n "$COPADO_EXECUTION" ] || [ -d "/home/executor/execution" ]; then
+    echo "CI/CD environment detected - skipping virtual environment creation"
+    SKIP_VENV=true
+else
+    echo "Local environment detected - creating virtual environment"
+    SKIP_VENV=false
 fi
 
-source env/bin/activate
-echo "virtual environment created and activated"
+# Create and activate virtual environment only if not in CI/CD
+if [ "$SKIP_VENV" = false ]; then
+    echo "Creating virtual environment"
+    python -m venv env
+    
+    if [ ! -f "env/bin/activate" ]; then
+        echo "ERROR: Failed to create virtual environment"
+        exit 1
+    fi
+    
+    source env/bin/activate
+    echo "Virtual environment created and activated"
+else
+    echo "Using system Python environment"
+fi
 
 echo "installing dependencies from requirements.txt"
 if [ ! -f "requirements.txt" ]; then
@@ -43,6 +59,10 @@ TEST_EXIT_CODE=$?
 echo "pytest testing completed with exit code: $TEST_EXIT_CODE"
 
 cd "$SCRIPT_DIR"
-deactivate
+
+# Only deactivate if we created a venv
+if [ "$SKIP_VENV" = false ]; then
+    deactivate
+fi
 
 exit $TEST_EXIT_CODE
