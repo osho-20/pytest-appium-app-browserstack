@@ -29,11 +29,17 @@ Execute BrowserStack Pytest Tests
     ${key_status}=    Set Variable If    '${key}' != 'NOT_SET'    Yes    No
     Log    BrowserStack Key configured: ${key_status}    console=True
     
+    # Generate unique build identifier
+    ${timestamp}=    Get Time    epoch
+    ${random}=    Evaluate    __import__('random').randint(1000, 9999)
+    ${build_id}=    Set Variable    build_${timestamp}_${random}
+    Log    Build Identifier: ${build_id}    console=True
+    
     # Ensure script has execute permissions
     Run    chmod +x ${SCRIPT_PATH}
     
     # Execute the bash script with exported environment variables using shell
-    ${command}=    Set Variable    export BROWSERSTACK_USERNAME="${username}" && export BROWSERSTACK_ACCESS_KEY="${key}" && bash ${SCRIPT_PATH}
+    ${command}=    Set Variable    export BROWSERSTACK_USERNAME="${username}" && export BROWSERSTACK_ACCESS_KEY="${key}" && export BROWSERSTACK_BUILD_RUN_IDENTIFIER="${build_id}" && bash ${SCRIPT_PATH}
     ${result}=    Run Process    bash    -c    ${command}
     ...    cwd=${CURDIR}
     ...    timeout=${TIMEOUT}
