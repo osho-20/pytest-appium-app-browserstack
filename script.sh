@@ -80,6 +80,4 @@ if [ "$SKIP_VENV" = false ]; then
     deactivate
 fi
 
-cat log/sdk-cli.log
-
 exit $TEST_EXIT_CODE
