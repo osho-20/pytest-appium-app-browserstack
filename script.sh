@@ -11,6 +11,21 @@ cd "$SCRIPT_DIR"
 echo "Python version:"
 python -V
 
+# Export BrowserStack credentials from Copado parameters
+if [ -n "$BROWSERSTACK_USERNAME" ]; then
+    export BROWSERSTACK_USERNAME
+    echo "BrowserStack username configured from Copado parameters"
+else
+    echo "WARNING: BROWSERSTACK_USERNAME not set"
+fi
+
+if [ -n "$BROWSERSTACK_ACCESS_KEY" ]; then
+    export BROWSERSTACK_ACCESS_KEY
+    echo "BrowserStack access key configured from Copado parameters"
+else
+    echo "WARNING: BROWSERSTACK_ACCESS_KEY not set"
+fi
+
 # Detect if running in Copado environment (or any CI/CD that already provides isolation)
 if [ -n "$CI" ] || [ -n "$COPADO_EXECUTION" ] || [ -d "/home/executor/execution" ]; then
     echo "CI/CD environment detected - skipping virtual environment creation"
