@@ -13,23 +13,26 @@ Execute BrowserStack Pytest Tests
     [Tags]    browserstack    android    pytest
     
     Log    Starting BrowserStack pytest execution    console=True
+    Log    Working directory: ${CURDIR}    console=True
     
     # Ensure script has execute permissions
     Run    chmod +x ${SCRIPT_PATH}
     
-    # Execute the bash script
+    # Execute the bash script from the project directory
     ${result}=    Run Process    bash    ${SCRIPT_PATH}
-    ...    shell=True
+    ...    cwd=${CURDIR}
     ...    timeout=${TIMEOUT}
     ...    stdout=${CURDIR}/robot_stdout.log
     ...    stderr=${CURDIR}/robot_stderr.log
+    ...    shell=False
     
-    # Log output
-    Log    ${result.stdout}    console=True
-    Log    ${result.stderr}    console=True
+    # Log output for debugging
+    Log    STDOUT:\n${result.stdout}    console=True
+    Log    STDERR:\n${result.stderr}    console=True
+    Log    Exit Code: ${result.rc}    console=True
     
-    # Check exit code
-    Should Be Equal As Integers    ${result.rc}    0    msg=Pytest execution failed with exit code ${result.rc}
+    # Check exit code - fail if non-zero
+    Run Keyword If    ${result.rc} != 0    Fail    Pytest execution failed with exit code ${result.rc}. Check logs for details.
     
     Log    BrowserStack pytest execution completed successfully    console=True
 
