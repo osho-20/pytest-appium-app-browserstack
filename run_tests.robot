@@ -6,6 +6,9 @@ Library          OperatingSystem
 *** Variables ***
 ${SCRIPT_PATH}    ${CURDIR}/script.sh
 ${TIMEOUT}        30 minutes
+# These can be overridden via command line: robot -v BROWSERSTACK_USERNAME:value -v BROWSERSTACK_ACCESS_KEY:value
+${BROWSERSTACK_USERNAME}    ${EMPTY}
+${BROWSERSTACK_ACCESS_KEY}    ${EMPTY}
 
 *** Test Cases ***
 Execute BrowserStack Pytest Tests
@@ -15,26 +18,28 @@ Execute BrowserStack Pytest Tests
     Log    Starting BrowserStack pytest execution    console=True
     Log    Working directory: ${CURDIR}    console=True
     
-    # Get BrowserStack credentials from environment
-    ${BROWSERSTACK_USERNAME}=    Get Environment Variable    BROWSERSTACK_USERNAME    default=NOT_SET
-    ${BROWSERSTACK_ACCESS_KEY}=    Get Environment Variable    BROWSERSTACK_ACCESS_KEY    default=NOT_SET
+    # Try to get credentials from Robot variables first, then fallback to environment variables
+    ${username}=    Set Variable If    '${BROWSERSTACK_USERNAME}' != '${EMPTY}'    ${BROWSERSTACK_USERNAME}    NOT_SET
+    ${username}=    Get Environment Variable    BROWSERSTACK_USERNAME    default=${username}
     
-    Log    BrowserStack Username: ${BROWSERSTACK_USERNAME}    console=True
-    ${key_status}=    Set Variable If    '${BROWSERSTACK_ACCESS_KEY}' != 'NOT_SET'    Yes    No
+    ${key}=    Set Variable If    '${BROWSERSTACK_ACCESS_KEY}' != '${EMPTY}'    ${BROWSERSTACK_ACCESS_KEY}    NOT_SET
+    ${key}=    Get Environment Variable    BROWSERSTACK_ACCESS_KEY    default=${key}
+    
+    Log    BrowserStack Username: ${username}    console=True
+    ${key_status}=    Set Variable If    '${key}' != 'NOT_SET'    Yes    No
     Log    BrowserStack Key configured: ${key_status}    console=True
     
     # Ensure script has execute permissions
     Run    chmod +x ${SCRIPT_PATH}
     
-    # Execute the bash script from the project directory with environment variables
-    ${result}=    Run Process    bash    ${SCRIPT_PATH}
+    # Execute the bash script with exported environment variables using shell
+    ${command}=    Set Variable    export BROWSERSTACK_USERNAME="${username}" && export BROWSERSTACK_ACCESS_KEY="${key}" && bash ${SCRIPT_PATH}
+    ${result}=    Run Process    bash    -c    ${command}
     ...    cwd=${CURDIR}
     ...    timeout=${TIMEOUT}
     ...    stdout=${CURDIR}/robot_stdout.log
     ...    stderr=${CURDIR}/robot_stderr.log
-    ...    shell=False
-    ...    env:BROWSERSTACK_USERNAME=${BROWSERSTACK_USERNAME}
-    ...    env:BROWSERSTACK_ACCESS_KEY=${BROWSERSTACK_ACCESS_KEY}
+    ...    shell=True
     
     # Log output for debugging
     Log    STDOUT:\n${result.stdout}    console=True
